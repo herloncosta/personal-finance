@@ -1,117 +1,84 @@
 # Personal Finance
 
-Aplicação fullstack para gestão de finanças pessoais: contas, transações, categorias, orçamentos mensais, dashboard com gráficos e insights gerados por IA.
+Aplicação fullstack para gestão de finanças pessoais, com controle de contas, transações, categorias, orçamentos mensais, painel analítico e geração de insights por inteligência artificial.
 
-## ✨ Funcionalidades
+## Visão geral
 
-- **Dashboard** — resumo mensal com gráficos (receitas × despesas, por categoria)
-- **Transações** — CRUD com filtros, categorização e sugestão de categoria por IA
-- **Contas** — corrente, poupança, carteira e investimento, com saldo inicial
-- **Categorias** — personalizáveis por usuário, com valores padrão no seed
-- **Orçamentos** — limite mensal por categoria
-- **Insights IA** — resumo mensal gerado via API compatível com OpenAI (OpenAI ou OpenRouter)
-- **Autenticação** — JWT (access + refresh), rotas protegidas no frontend
+O sistema oferece um painel mensal com a evolução de receitas e despesas, a distribuição de gastos por categoria e o acompanhamento do orçamento definido para cada categoria. As transações podem ser registradas, editadas e filtradas por período, conta e categoria, com sugestão automática de categoria. Os resumos mensais são complementados por análises geradas por provedor compatível com a API da OpenAI, com mecanismo local de contingência quando nenhuma chave está configurada. A autenticação utiliza tokens JWT de acesso e de atualização, e todas as rotas da aplicação exigem sessão válida.
 
-## 🧱 Stack
+## Arquitetura
 
-| Camada   | Tecnologias |
-|----------|-------------|
-| Backend  | NestJS 10, Prisma 5, PostgreSQL 16, JWT, OpenAI SDK |
-| Frontend | React 18, Vite 5, TypeScript, Tailwind, TanStack Query, Recharts, React Hook Form + Zod |
-| Infra    | Docker Compose (db + backend + frontend) |
+O backend é construído em NestJS com persistência em PostgreSQL por meio do Prisma, organizado em módulos de autenticação, contas, categorias, transações, orçamentos, painel e inteligência artificial. O frontend é uma aplicação React com Vite e TypeScript, com gerenciamento de estado de servidor, gráficos e formulários validados. O Docker Compose é utilizado exclusivamente para provisionar o banco de dados em ambiente de desenvolvimento.
 
-## ✅ Pré-requisitos
+| Camada | Tecnologias |
+|---|---|
+| Backend | NestJS 10, Prisma 5, PostgreSQL 16, JWT, OpenAI SDK |
+| Frontend | React 18, Vite 5, TypeScript, Tailwind CSS, TanStack Query, Recharts, React Hook Form, Zod |
+| Infraestrutura | Docker Compose para PostgreSQL 16 |
 
-- Docker + Docker Compose (para o fluxo recomendado), **ou**
-- Node 20+ e PostgreSQL 16 (para rodar sem Docker)
+## Pré-requisitos
 
-## 🚀 Quickstart (Docker — recomendado)
+Para executar o projeto é necessário ter Node.js 20 ou superior, Docker com Docker Compose para o banco de dados e acesso a um terminal com permissões para expor as portas 5433, 3000 e 5173.
+
+## Configuração inicial
+
+Copie o arquivo de exemplo de variáveis de ambiente e ajuste os valores conforme o ambiente local. O banco de dados é exposto na porta 5433 para evitar conflito com instalações locais na porta padrão.
 
 ```bash
-cp .env.example .env          # Windows: copy .env.example .env
-docker compose up -d          # sobe db + backend (migra sozinho) + frontend
-```
-
-Na primeira vez, aplique o seed (usuário demo + categorias padrão):
-
-```bash
-docker compose exec backend npx ts-node --compiler-options '{"module":"commonjs"}' prisma/seed.ts
-```
-
-Acesse:
-
-| Serviço  | URL |
-|----------|-----|
-| App      | http://localhost:5173 |
-| API      | http://localhost:3000/api/v1 |
-| Health   | http://localhost:3000/api/v1/health |
-| Banco    | localhost:5433 (usuário `fin` / senha `fin` / banco `finance`) |
-
-> **Rede local:** troque `localhost` pelo IP da máquina host (ex.: `http://192.168.88.253:5173`). O frontend usa a API via caminho relativo (`/api`, proxy do Vite), então funciona sem configuração extra.
-
-**Login demo:** `demo@finance.local` / `demo1234`
-
-## 🛠️ Desenvolvimento local (sem Docker)
-
-```bash
-# 1. Banco
+copy .env.example .env
 docker compose up -d db
-# ajuste DATABASE_URL no .env para localhost:5433
+```
 
-# 2. Backend (:3000)
+Com o banco em execução, configure a conexão no arquivo `.env` para `postgresql://fin:fin@localhost:5433/finance` e inicie o backend. O comando de migração prepara o esquema e o seed cria o usuário de demonstração com as categorias padrão.
+
+```bash
 cd backend
 npm install
 npx prisma migrate dev
 npx prisma db seed
 npm run start:dev
+```
 
-# 3. Frontend (:5173)
-cd ../frontend
+Em outro terminal, inicie o frontend, disponível por padrão em `http://localhost:5173`, com consumo da API em `http://localhost:3000/api/v1`.
+
+```bash
+cd frontend
 npm install
 npm run dev
 ```
 
-## ⚙️ Variáveis de ambiente
+O acesso de demonstração utiliza o e-mail `demo@finance.local` com a senha `demo1234`. O endpoint `GET /api/v1/health` pode ser usado para verificação operacional da API. Em rede local, substitua `localhost` pelo endereço IP do hospedeiro; o frontend resolve chamadas a `/api` por meio do proxy de desenvolvimento do Vite.
 
-| Variável | Onde | Descrição |
-|----------|------|-----------|
-| `DATABASE_URL` | backend / raiz | Conexão PostgreSQL |
-| `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | backend | Segredos JWT (troque em produção!) |
-| `OPENAI_API_KEY` | backend | Chave OpenAI ou OpenRouter (IA opcional sem ela) |
-| `OPENAI_BASE_URL` | backend | Ex.: `https://openrouter.ai/api/v1` |
-| `OPENAI_MODEL` | backend | Padrão: `gpt-4o-mini` |
-| `PORT` | backend | Padrão: `3000` |
-| `VITE_API_URL` | frontend | Se vazio, usa `/api/v1` via proxy do Vite |
-| `VITE_PROXY_TARGET` | compose | Destino do proxy `/api` no dev (padrão: `http://localhost:3000`) |
+## Variáveis de ambiente
 
-> ⚠️ Nunca commite o `.env` real — ele está no `.gitignore`. A chave de IA deve ser tratada como segredo.
+| Variável | Aplicação | Descrição |
+|---|---|---|
+| `DATABASE_URL` | Backend | Cadeia de conexão PostgreSQL, apontando para `localhost:5433` no uso com Compose |
+| `JWT_ACCESS_SECRET` e `JWT_REFRESH_SECRET` | Backend | Segredos para assinatura dos tokens, que devem ser substituídos em produção |
+| `OPENAI_API_KEY` | Backend | Chave da OpenAI ou do OpenRouter; sem ela, o sistema usa o provedor local de contingência |
+| `OPENAI_BASE_URL` | Backend | URL base do provedor, por exemplo `https://openrouter.ai/api/v1` |
+| `OPENAI_MODEL` | Backend | Modelo utilizado, com padrão `gpt-4o-mini` |
+| `PORT` | Backend | Porta HTTP da API, com padrão `3000` |
+| `VITE_API_URL` | Frontend | Quando vazio, utiliza `/api/v1` por meio do proxy do Vite |
 
-## 📜 Scripts úteis
+O arquivo `.env` real está incluído no `.gitignore` e não deve ser versionado. Chaves de IA devem ser tratadas como segredos.
 
-```bash
-# backend
-npm run start:dev     # dev com watch (:3000)
-npm run build         # build de produção
-npm test              # jest
-npx prisma studio     # admin visual do banco
+## Scripts de desenvolvimento
 
-# frontend
-npm run dev           # dev (:5173)
-npm run build         # typecheck + build
+No backend, `npm run start:dev` inicia a API em modo de observação, `npm run build` gera a versão de produção, `npm test` executa a suíte Jest e `npx prisma studio` abre a interface visual do banco. No frontend, `npm run dev` inicia o servidor de desenvolvimento e `npm run build` executa verificação de tipos seguida da compilação.
+
+## Estrutura do repositório
+
+```text
+backend/            Camada NestJS com Prisma
+backend/prisma/     Esquema, migrações e seed
+backend/src/modules/ Módulos de autenticação, contas, categorias, transações, orçamentos, painel e IA
+frontend/           Aplicação React com Vite
+frontend/src/       Páginas, recursos por domínio, componentes e utilitários
+docker-compose.yml  Provisionamento do PostgreSQL na porta 5433
+.env.example        Modelo de configuração de ambiente
 ```
 
-## 🗂️ Estrutura
+## Licença
 
-```
-├── backend/            # NestJS + Prisma
-│   ├── prisma/         # schema, migrations, seed
-│   └── src/modules/    # auth, accounts, categories, transactions, budgets, dashboard, ai
-├── frontend/           # React + Vite
-│   └── src/            # pages, features, components, lib
-├── docker-compose.yml  # db (5433) + backend (3000) + frontend (5173)
-└── .env.example        # modelo de configuração
-```
-
-## 📄 Licença
-
-Uso pessoal/educacional. Adapte como precisar.
+Projeto de uso pessoal e educacional. Adaptações são permitidas conforme a necessidade.

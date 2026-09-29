@@ -12,35 +12,5 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  backend:
-    build: ./backend
-    restart: unless-stopped
-    depends_on:
-      - db
-    environment:
-      DATABASE_URL: postgresql://fin:fin@db:5432/finance
-      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev-access-secret}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev-refresh-secret}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
-      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
-      PORT: 3000
-    ports:
-      - "3000:3000"
-    command: sh -c "npx prisma migrate deploy && node dist/src/main"
-
-  frontend:
-    image: node:24-alpine
-    working_dir: /app
-    volumes:
-      - ./frontend:/app
-    environment:
-      VITE_PROXY_TARGET: http://backend:3000
-    ports:
-      - "5173:5173"
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
-    depends_on:
-      - backend
-
 volumes:
   pgdata:
