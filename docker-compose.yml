@@ -3,12 +3,11 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: fin
-      POSTGRES_PASSWORD: fin
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
       POSTGRES_DB: finance
-    # porta publicada como 5433 para não chocar com outros postgres no host (5432)
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
