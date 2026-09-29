@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createCategory, deleteCategory, listCategories } from '../features/categories/api';
+import { PlusIcon, XIcon } from '../components/icons';
 
-const COLORS = ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#64748b'];
+const COLORS = ['#820ad1', '#ef4444', '#f59e0b', '#22c55e', '#3b82f6', '#ec4899', '#64748b'];
 
 export default function CategoriesPage() {
   const qc = useQueryClient();
@@ -25,56 +26,83 @@ export default function CategoriesPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold">Categorias</h1>
+      <h1 className="font-display text-xl font-bold">Categorias</h1>
+      <p className="mt-1 text-sm text-muted">Organize receitas e despesas do seu jeito.</p>
 
       <form
-        className="mt-4 flex flex-wrap items-center gap-2"
+        className="card mt-4 flex flex-wrap items-center gap-2 p-4"
         onSubmit={(e) => {
           e.preventDefault();
           if (name.trim()) create.mutate();
         }}
       >
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nova categoria" className="rounded-lg border px-3 py-2 text-sm" />
-        <select value={type} onChange={(e) => setType(e.target.value)} className="rounded-lg border px-3 py-2 text-sm">
-          <option value="expense">Despesa</option>
-          <option value="income">Receita</option>
-        </select>
-        <div className="flex gap-1">
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nova categoria" aria-label="Nome da categoria" className="field min-w-[10rem] flex-1" />
+        <div className="flex rounded-lg bg-brand-100/70 p-1" role="tablist" aria-label="Tipo">
+          {(['expense', 'income'] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              role="tab"
+              aria-selected={type === v}
+              onClick={() => setType(v)}
+              className={`seg ${type === v ? 'seg-active' : ''}`}
+            >
+              {v === 'expense' ? 'Despesa' : 'Receita'}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-1.5" role="radiogroup" aria-label="Cor">
           {COLORS.map((c) => (
             <button
               key={c}
               type="button"
+              role="radio"
+              aria-checked={color === c}
+              aria-label={c}
               onClick={() => setColor(c)}
-              className={`h-6 w-6 rounded-full ${color === c ? 'ring-2 ring-black ring-offset-1' : ''}`}
+              className={`h-7 w-7 rounded-lg transition ${color === c ? 'ring-2 ring-brand-700 ring-offset-2 ring-offset-white' : 'hover:scale-110'}`}
               style={{ background: c }}
-              title={c}
             />
           ))}
         </div>
-        <button className="rounded-lg bg-black px-4 py-2 text-sm text-white">+ Adicionar</button>
+        <button className="btn-primary inline-flex items-center gap-1.5" disabled={create.isPending}>
+          <PlusIcon className="h-4 w-4" />
+          {create.isPending ? 'Adicionando…' : 'Adicionar'}
+        </button>
       </form>
 
       {isLoading ? (
-        <p className="mt-6 text-sm text-gray-500">Carregando…</p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div className="h-40 animate-pulse rounded-lg bg-white" />
+          <div className="h-40 animate-pulse rounded-lg bg-white" />
+        </div>
       ) : (
-        <div className="mt-6 grid gap-6 sm:grid-cols-2">
-          {[
-            ['Despesas', 'expense'],
-            ['Receitas', 'income'],
-          ].map(([label, t]) => (
-            <div key={t}>
-              <h2 className="text-sm font-semibold text-gray-500">{label}</h2>
-              <ul className="mt-2 space-y-1">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          {(
+            [
+              ['Despesas', 'expense'],
+              ['Receitas', 'income'],
+            ] as const
+          ).map(([label, t]) => (
+            <section key={t} className="card p-5">
+              <h2 className="font-display text-[15px] font-semibold">{label}</h2>
+              <ul className="mt-3 space-y-1.5">
                 {group(t).map((c) => (
-                  <li key={c.id} className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
-                    <span className="h-3 w-3 rounded-full" style={{ background: c.color }} />
-                    <span className="flex-1">{c.name}</span>
-                    <button onClick={() => del.mutate(c.id)} className="text-xs text-gray-400 hover:text-red-600">✕</button>
+                  <li key={c.id} className="group flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition hover:bg-brand-50">
+                    <span className="h-3.5 w-3.5 shrink-0 rounded-full" style={{ background: c.color }} />
+                    <span className="flex-1 text-sm font-medium">{c.name}</span>
+                    <button
+                      onClick={() => del.mutate(c.id)}
+                      aria-label={`Excluir ${c.name}`}
+                      className="rounded-lg p-1 text-muted opacity-0 transition hover:text-red-600 focus:opacity-100 group-hover:opacity-100"
+                    >
+                      <XIcon className="h-4 w-4" />
+                    </button>
                   </li>
                 ))}
-                {group(t).length === 0 && <li className="text-sm text-gray-400">Nenhuma.</li>}
+                {group(t).length === 0 && <li className="text-sm text-muted">Nenhuma categoria.</li>}
               </ul>
-            </div>
+            </section>
           ))}
         </div>
       )}

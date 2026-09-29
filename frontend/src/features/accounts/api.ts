@@ -14,3 +14,6 @@ export const createAccount = (data: { name: string; type: string; initialBalance
   api.post<Account>('/accounts', data).then((r) => r.data);
 
 export const deleteAccount = (id: string) => api.delete(`/accounts/${id}`);
+
+export const updateAccount = (id: string, data: { name?: string; type?: string; initialBalance?: number }) =>
+  api.patch<Account>(`/accounts/${id}`, data).then((r) => r.data);

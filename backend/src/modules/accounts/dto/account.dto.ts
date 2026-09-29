@@ -26,4 +26,8 @@ export class UpdateAccountDto {
   @IsEnum(AccountType)
   @IsOptional()
   type?: AccountType;
+
+  @IsNumber()
+  @IsOptional()
+  initialBalance?: number;
 }

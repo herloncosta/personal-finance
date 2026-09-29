@@ -35,3 +35,15 @@ export const createTransaction = (data: {
 }) => api.post<Transaction>('/transactions', data).then((r) => r.data);
 
 export const deleteTransaction = (id: string) => api.delete(`/transactions/${id}`);
+
+export const updateTransaction = (
+  id: string,
+  data: {
+    type?: string;
+    amount?: number;
+    date?: string;
+    description?: string;
+    accountId?: string;
+    categoryId?: string | null;
+  },
+) => api.patch<Transaction>(`/transactions/${id}`, data).then((r) => r.data);
