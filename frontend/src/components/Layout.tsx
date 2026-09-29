@@ -43,11 +43,11 @@ export default function Layout() {
           {items.map(({ to, label, Icon, end }) => (
             <NavLink key={to} to={to} end={end} className={sideLink}>
               <Icon className="h-5 w-5 shrink-0" />
-              <span className="truncate">{label}</span>
+              {!collapsed && <span className="truncate">{label}</span>}
             </NavLink>
           ))}
         </nav>
-        <div className={`mt-auto flex items-center gap-3 rounded-lg bg-white/10 p-3 ${collapsed ? 'flex-col justify-center' : ''}`}>
+        <div className={`mt-auto flex items-center gap-3 rounded-lg p-3 ${collapsed ? 'flex-col justify-center bg-transparent' : 'bg-white/10'}`}>
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-300 font-display text-sm font-bold text-brand-950">
             {initial}
           </span>
