@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountType {
+  checking
+  savings
+  wallet
+  investment
+}
+
+enum EntryType {
+  income
+  expense
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String
+  passwordHash String
+  accounts     Account[]
+  categories   Category[]
+  transactions Transaction[]
+  budgets      Budget[]
+  insights     AiInsight[]
+  createdAt    DateTime      @default(now())
+}
+
+model Account {
+  id             String        @id @default(cuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  type           AccountType   @default(checking)
+  initialBalance Decimal       @default(0) @db.Decimal(12, 2)
+  transactions   Transaction[]
+
+  @@index([userId])
+}
+
+model Category {
+  id           String        @id @default(cuid())
+  userId       String?
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  type         EntryType
+  color        String        @default("#888888")
+  icon         String        @default("tag")
+  isDefault    Boolean       @default(false)
+  budgets      Budget[]
+  transactions Transaction[]
+
+  @@index([userId])
+}
+
+model Transaction {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId    String
+  account      Account   @relation(fields: [accountId], references: [id])
+  categoryId   String?
+  category     Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  type         EntryType
+  amount       Decimal   @db.Decimal(12, 2)
+  date         DateTime  @db.Date
+  description  String
+  aiCategory   String?
+  aiConfidence Float?
+  createdAt    DateTime  @default(now())
+
+  @@index([userId, date])
+  @@index([accountId])
+}
+
+model Budget {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  month       DateTime @db.Date
+  limitAmount Decimal  @db.Decimal(12, 2)
+
+  @@unique([userId, categoryId, month])
+}
+
+model AiInsight {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  month     DateTime @db.Date
+  summary   String
+  payload   Json
+  createdAt DateTime @default(now())
+
+  @@unique([userId, month])
+}
