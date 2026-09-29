@@ -23,6 +23,12 @@ export async function login(data: { email: string; password: string }) {
   return res.data;
 }
 
+export async function refresh() {
+  const res = await api.post<AuthResponse>('/auth/refresh', {});
+  setAccessToken(res.data.accessToken);
+  return res.data;
+}
+
 export async function logout() {
   try {
     await api.post('/auth/logout');
@@ -32,8 +38,6 @@ export async function logout() {
 }
 
 export async function me() {
-  const token = localStorage.getItem('access_token');
-  if (token) api.defaults.headers.common.Authorization = `Bearer ${token}`;
   const res = await api.get<AuthUser>('/auth/me');
   return res.data;
 }

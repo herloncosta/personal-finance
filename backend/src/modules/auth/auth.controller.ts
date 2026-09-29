@@ -45,9 +45,15 @@ export class AuthController {
     return { user: result.user, accessToken: result.accessToken };
   }
 
+  @Public()
   @Post('logout')
   @HttpCode(204)
-  logout(@Res({ passthrough: true }) res: Response) {
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const header: string | undefined = req.headers?.authorization;
+    await this.auth.logout(
+      req.cookies?.[REFRESH_COOKIE] ?? req.body?.refreshToken,
+      header?.startsWith('Bearer ') ? header.slice(7) : undefined,
+    );
     res.clearCookie(REFRESH_COOKIE, { path: '/' });
   }
 

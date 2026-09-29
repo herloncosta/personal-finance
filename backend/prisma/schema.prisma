@@ -29,6 +29,7 @@ model User {
   transactions Transaction[]
   budgets      Budget[]
   insights     AiInsight[]
+  revokedTokens RevokedToken[]
   createdAt    DateTime      @default(now())
 }
 
@@ -101,4 +102,17 @@ model AiInsight {
   createdAt DateTime @default(now())
 
   @@unique([userId, month])
+}
+
+// Tokens JWT revogados (logout ou rotação do refresh). Expirados são
+// expurgados por preguiça (lazy purge) e já seriam inválidos pelo `exp`.
+model RevokedToken {
+  jti       String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
 }

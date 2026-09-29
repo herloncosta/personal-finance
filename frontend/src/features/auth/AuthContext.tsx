@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { onUnauthorizedExpired } from '../../lib/api-client';
 import * as authApi from './api';
 import type { AuthUser } from './api';
 
@@ -19,16 +20,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!localStorage.getItem('access_token')) {
-      setLoading(false);
-      return;
-    }
+    // Sem token em memória após reload: tenta o refresh via cookie httpOnly.
+    // Sem refresh válido, segue deslogado.
     authApi
-      .me()
-      .then(setUser)
-      .catch(() => localStorage.removeItem('access_token'))
+      .refresh()
+      .then((res) => setUser(res.user))
+      .catch(() => setUser(null))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    // 401 irrecuperável em qualquer request (refresh falhou) → desloga.
+    onUnauthorizedExpired(() => {
+      setUser(null);
+      navigate('/login');
+    });
+  }, [navigate]);
 
   const signIn = async (email: string, password: string) => {
     const res = await authApi.login({ email, password });

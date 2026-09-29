@@ -3,10 +3,23 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { AuthService } from './auth.service';
 
-const prismaMock = () => ({
-  user: { findUnique: jest.fn(), create: jest.fn() },
-  category: { findMany: jest.fn().mockResolvedValue([]), createMany: jest.fn() },
-});
+const prismaMock = () => {
+  const revoked = new Set<string>();
+  return {
+    user: { findUnique: jest.fn(), create: jest.fn() },
+    category: { findMany: jest.fn().mockResolvedValue([]), createMany: jest.fn() },
+    revokedToken: {
+      findUnique: jest.fn(({ where }: any) =>
+        Promise.resolve(revoked.has(where.jti) ? { jti: where.jti } : null),
+      ),
+      createMany: jest.fn(({ data }: any) => {
+        for (const d of data) revoked.add(d.jti);
+        return Promise.resolve({ count: data.length });
+      }),
+      deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
+    },
+  };
+};
 
 describe('AuthService (sem banco — prisma mockado)', () => {
   const make = () => new AuthService(prismaMock() as any, new JwtService());
@@ -60,5 +73,29 @@ describe('AuthService (sem banco — prisma mockado)', () => {
     const svc = make();
     await expect(svc.refresh('invalido')).rejects.toBeInstanceOf(UnauthorizedException);
     await expect(svc.refresh(undefined)).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it('refresh: reuso do token antigo (rotação) → 401', async () => {
+    const prisma: any = prismaMock();
+    prisma.user.findUnique.mockResolvedValue({ id: 'u1', name: 'A', email: 'a@x.com' });
+    const svc = new AuthService(prisma, new JwtService());
+
+    const pair = svc.sign('u1', 'a@x.com');
+    const rotated = await svc.refresh(pair.refreshToken);
+    expect(rotated.accessToken).toBeTruthy();
+    expect(rotated.refreshToken).not.toBe(pair.refreshToken);
+    await expect(svc.refresh(pair.refreshToken)).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it('logout: revoga access e refresh apresentados', async () => {
+    const prisma: any = prismaMock();
+    const svc = new AuthService(prisma, new JwtService());
+    const pair = (svc as any).sign('u1', 'a@x.com');
+
+    await svc.logout(pair.refreshToken, pair.accessToken);
+
+    expect(await svc.isRevoked((svc as any).jwt.decode(pair.refreshToken).jti)).toBe(true);
+    expect(await svc.isRevoked((svc as any).jwt.decode(pair.accessToken).jti)).toBe(true);
+    await expect(svc.refresh(pair.refreshToken)).rejects.toBeInstanceOf(UnauthorizedException);
   });
 });
