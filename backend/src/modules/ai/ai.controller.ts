@@ -1,5 +1,5 @@
 import { Body, Controller, Get, HttpCode, Post, Query } from '@nestjs/common';
-import { IsEnum, IsNotEmpty, IsString, Matches, MaxLength } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 import { EntryType } from '@prisma/client';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { RequestUser } from '../auth/jwt-auth.guard';
@@ -20,6 +20,7 @@ class InsightsQuery {
   month!: string;
 
   @IsString()
+  @IsOptional()
   refresh?: string;
 }
 
