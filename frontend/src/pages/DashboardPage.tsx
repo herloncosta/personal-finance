@@ -109,7 +109,7 @@ export default function DashboardPage() {
                       <Cell key={c.id ?? c.name} fill={c.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(v: number) => brl(v)} />
+                  <Tooltip content={<CategoryTooltip total={data.expense} />} />
                 </PieChart>
               </ResponsiveContainer>
               <ul className="mt-1 space-y-1.5 text-sm">
@@ -154,5 +154,17 @@ export default function DashboardPage() {
       <BudgetSection month={month} />
       <InsightCard month={month} />
     </motion.div>
+  );
+}
+
+function CategoryTooltip({ active, payload, total }: any) {
+  if (!active || !payload?.length) return null;
+  const item = payload[0].payload;
+  const pct = total > 0 ? (item.total / total) * 100 : 0;
+  return (
+    <div className="rounded-lg bg-white px-3 py-2 text-sm shadow-card">
+      <p className="font-medium">{item.name}</p>
+      <p className="text-muted">{pct.toFixed(1)}% · {brl(item.total)}</p>
+    </div>
   );
 }
