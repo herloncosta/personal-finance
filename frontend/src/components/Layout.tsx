@@ -47,23 +47,21 @@ export default function Layout() {
             </NavLink>
           ))}
         </nav>
-        <div className={`mt-auto flex items-center gap-3 rounded-lg bg-white/10 p-3 ${collapsed ? 'justify-center' : ''}`}>
+        <div className={`mt-auto flex items-center gap-3 rounded-lg bg-white/10 p-3 ${collapsed ? 'flex-col justify-center' : ''}`}>
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-300 font-display text-sm font-bold text-brand-950">
             {initial}
           </span>
           {!collapsed && (
-            <>
-              <span className="min-w-0 flex-1 truncate text-sm font-medium">{user?.name}</span>
-              <button
-                onClick={signOut}
-                title="Sair"
-                aria-label="Sair"
-                className="rounded-lg p-1.5 text-brand-100/80 transition hover:bg-white/10 hover:text-white"
-              >
-                <OutIcon className="h-5 w-5" />
-              </button>
-            </>
+            <span className="min-w-0 flex-1 truncate text-sm font-medium">{user?.name}</span>
           )}
+          <button
+            onClick={signOut}
+            title="Sair"
+            aria-label="Sair"
+            className="rounded-lg p-1.5 text-brand-100/80 transition hover:bg-white/10 hover:text-white"
+          >
+            <OutIcon className="h-5 w-5" />
+          </button>
         </div>
         <button
           onClick={() => setCollapsed(!collapsed)}
