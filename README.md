@@ -2,6 +2,8 @@
 
 Aplicação fullstack para gestão de finanças pessoais, com controle de contas, transações, categorias, orçamentos mensais, painel analítico e geração de insights por inteligência artificial.
 
+![Preview da aplicação](./preview.png)
+
 ## Visão geral
 
 O sistema oferece um painel mensal com a evolução de receitas e despesas, a distribuição de gastos por categoria e o acompanhamento do orçamento definido para cada categoria. As transações podem ser registradas, editadas e filtradas por período, conta e categoria, com sugestão automática de categoria. Os resumos mensais são complementados por análises geradas por provedor compatível com a API da OpenAI, com mecanismo local de contingência quando nenhuma chave está configurada. A autenticação utiliza tokens JWT de acesso e de atualização, e todas as rotas da aplicação exigem sessão válida.
@@ -29,7 +31,7 @@ copy .env.example .env
 docker compose up -d db
 ```
 
-Com o banco em execução, configure a conexão no arquivo `.env` para `postgresql://fin:fin@localhost:5433/finance` e inicie o backend. O comando de migração prepara o esquema e o seed cria o usuário de demonstração com as categorias padrão.
+Com o banco em execução, configure a conexão no arquivo `.env` para `postgresql://fin:fin@localhost:5432/finance` e inicie o backend. O comando de migração prepara o esquema e o seed cria o usuário de demonstração com as categorias padrão.
 
 ```bash
 cd backend
