@@ -15,16 +15,16 @@ O backend é construído em NestJS com persistência em PostgreSQL por meio do P
 | Camada | Tecnologias |
 |---|---|
 | Backend | NestJS 10, Prisma 5, PostgreSQL 16, JWT, OpenAI SDK |
-| Frontend | React 18, Vite 5, TypeScript, Tailwind CSS, TanStack Query, Recharts, React Hook Form, Zod |
+| Frontend | React 18, Vite 5, TypeScript, Tailwind CSS, TanStack Query, Recharts, React Hook Form, Zod, react-select, react-datepicker, framer-motion |
 | Infraestrutura | Docker Compose para PostgreSQL 16 |
 
 ## Pré-requisitos
 
-Para executar o projeto é necessário ter Node.js 20 ou superior, Docker com Docker Compose para o banco de dados e acesso a um terminal com permissões para expor as portas 5433, 3000 e 5173.
+Para executar o projeto é necessário ter Node.js 20 ou superior, Docker com Docker Compose para o banco de dados e acesso a um terminal com permissões para expor as portas 5432, 3000 e 5173.
 
 ## Configuração inicial
 
-Copie o arquivo de exemplo de variáveis de ambiente e ajuste os valores conforme o ambiente local. O banco de dados é exposto na porta 5433 para evitar conflito com instalações locais na porta padrão.
+Copie o arquivo de exemplo de variáveis de ambiente e ajuste os valores conforme o ambiente local. O banco de dados é exposto na porta 5432.
 
 ```bash
 copy .env.example .env
@@ -46,7 +46,7 @@ Em outro terminal, inicie o frontend, disponível por padrão em `http://localho
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev -- --host 0.0.0.0
 ```
 
 O acesso de demonstração utiliza o e-mail `demo@finance.local` com a senha `demo1234`. O endpoint `GET /api/v1/health` pode ser usado para verificação operacional da API. Em rede local, substitua `localhost` pelo endereço IP do hospedeiro; o frontend resolve chamadas a `/api` por meio do proxy de desenvolvimento do Vite.
@@ -55,7 +55,7 @@ O acesso de demonstração utiliza o e-mail `demo@finance.local` com a senha `de
 
 | Variável | Aplicação | Descrição |
 |---|---|---|
-| `DATABASE_URL` | Backend | Cadeia de conexão PostgreSQL, apontando para `localhost:5433` no uso com Compose |
+| `DATABASE_URL` | Backend | Cadeia de conexão PostgreSQL, apontando para `localhost:5432` no uso com Compose |
 | `JWT_ACCESS_SECRET` e `JWT_REFRESH_SECRET` | Backend | Segredos para assinatura dos tokens, que devem ser substituídos em produção |
 | `OPENAI_API_KEY` | Backend | Chave da OpenAI ou do OpenRouter; sem ela, o sistema usa o provedor local de contingência |
 | `OPENAI_BASE_URL` | Backend | URL base do provedor, por exemplo `https://openrouter.ai/api/v1` |
@@ -77,7 +77,7 @@ backend/prisma/     Esquema, migrações e seed
 backend/src/modules/ Módulos de autenticação, contas, categorias, transações, orçamentos, painel e IA
 frontend/           Aplicação React com Vite
 frontend/src/       Páginas, recursos por domínio, componentes e utilitários
-docker-compose.yml  Provisionamento do PostgreSQL na porta 5433
+docker-compose.yml  Provisionamento do PostgreSQL na porta 5432
 .env.example        Modelo de configuração de ambiente
 ```
 
